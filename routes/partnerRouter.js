@@ -1,9 +1,9 @@
 const express = require('express');
-const partnerRouter = express.Router();
-const Partner = require('../models/partner');
-const authenticate = require('../authenticate')
+const promotionRouter = express.Router();
+const Promotion = require('../models/promotion');
+const authenticate = require("../authenticate")
 
-partnerRouter.route('/')
+promotionRouter.route('/')
 .all((req, res, next) => {
     res.statusCode = 200;
     res.setHeader("Content-type", "text/plain");
@@ -11,30 +11,31 @@ partnerRouter.route('/')
 })
 
 .get((req, res, next) => {
-    Partner.find()
-    .then(partners => {
+    Promotion.find()
+    .then(promotions => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json(partners);
+        res.json(promotions);
     })
     .catch(err => next(err));
 })
-.post(authenticate.verifyUser, (req, res) => {
-    Partner.create(req.body)
-    .then(partner => {
-        console.log('Partner Created ', partner);
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    Promotion.create(req.body)
+    .then(promotion => {
+        console.log('promotion Created ', promotion);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json(partner);
+        res.json(promotion);
+        
     })
     .catch(err => next(err));
 })
 .put(authenticate.verifyUser, (req, res) => {
     res.statusCode = 403;
-    res.end("PUT operation not supported on /partners")
+    res.end("PUT operation not supported on /promotions")
 })
 .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
-    Partner.deleteMany()
+    Promotion.deleteMany()
     .then(response => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
@@ -43,43 +44,41 @@ partnerRouter.route('/')
     .catch(err => next(err));
 });
 
-partnerRouter.route('/:partnerId')
+promotionRouter.route('/:promotionId')
 .get((req, res) => {
-    //res.end(`Will send details of the partner: ${req.params.partnerId} to you`);
-    Partner.findById(req.params.partnerId)
-    .then(partner => {
+    Promotion.findById(req.params.promotionId)
+    .then(promotion => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json(partner);
+        res.json(promotion);
     })
     .catch(err => next(err));
 })
 .post(authenticate.verifyUser, (req, res) => {
     res.statusCode = 403
-    res.end(`POST operation not supported on /partners/${req.params.partnerId}`);
+    res.end(`POST operation not supported on /promotions/${req.params.promotionId}`);
 })
 .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
-    Partner.findByIdAndUpdate(req.params.partnerId, {
+    Promotion.findByIdAndUpdate(req.params.promotionId, {
         $set: req.body
     }, { new: true })
-    .then(partner => {
+    .then(promotion => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
-        res.json(partner);
+        res.json(promotion);
     })
     .catch(err => next(err));
 })
 .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-    Partner.findById(req.params.partnerId)
-    .then(partner => {
-        if(partner){
-            partner.remove()
-            partner.save()
-        } else if(!partner){
-            err = new Error(`Partner ${req.params.partnerId} not found`);
+    Promotion.findById(req.params.promotionId)
+    .then(promotion => {
+        if(promotion){
+            promotion.remove()
+            promotion.save()
+        } else if(!promotion){
+            err = new Error(`Promotion ${req.params.promotionId} not found`);
             err.status = 404;
             return next(err)
-        
         }
     })
     .catch(err => next(err));
@@ -89,4 +88,4 @@ partnerRouter.route('/:partnerId')
 
 
 
-module.exports = partnerRouter;
+module.exports = promotionRouter;
